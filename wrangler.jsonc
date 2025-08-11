@@ -23,6 +23,23 @@
    * databases, object storage, AI inference, real-time communication and more.
    * https://developers.cloudflare.com/workers/runtime-apis/bindings/
    */
+  "secrets_store_secrets": [
+    {
+      "binding": "CLERK_PUBLISHABLE_KEY",
+      "store_id": "36b416cb3013449cbd9ad07778a29001",
+      "secret_name": "CLERK_PUBLISHABLE_KEY"
+    },
+    {
+      "binding": "CLERK_SECRET_KEY",
+      "store_id": "36b416cb3013449cbd9ad07778a29001",
+      "secret_name": "CLERK_SECRET_KEY"
+    },
+    {
+      "binding": "OPENAI_SECRET_KEY",
+      "store_id": "36b416cb3013449cbd9ad07778a29001",
+      "secret_name": "OPENAI_SECRET_KEY"
+    }
+  ],
   /**
    * Environment Variables
    * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables

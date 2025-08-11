@@ -6,9 +6,23 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-
+import { rootAuthLoader } from '@clerk/react-router/ssr.server'
+import { ClerkProvider, SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/react-router'
 import type { Route } from "./+types/root";
 import "./app.css";
+
+export const getCloudflareEnv = (args: Route.LoaderArgs) => {
+  // @ts-ignore
+  return (args.context.cloudflare.env as Env);
+}
+
+export async function loader(args: Route.LoaderArgs) {
+  const env = getCloudflareEnv(args)
+  return rootAuthLoader(args, {
+    secretKey: env.LOCAL_CLERK_SECRET_KEY ?? await env.CLERK_SECRET_KEY.get(),
+    publishableKey: env.LOCAL_CLERK_PUBLISHABLE_KEY ?? await env.CLERK_PUBLISHABLE_KEY.get()
+  })
+}
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -41,8 +55,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App() {
-  return <Outlet />;
+export default function App({ loaderData }: Route.ComponentProps) {
+  return (
+      <ClerkProvider loaderData={loaderData}>
+        <header className="flex items-center justify-center py-8 px-4">
+          <SignedOut>
+            <SignInButton />
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </header>
+        <main>
+          <Outlet />
+        </main>
+      </ClerkProvider>
+  )
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
