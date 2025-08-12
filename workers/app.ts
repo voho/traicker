@@ -1,8 +1,9 @@
 import {Hono} from "hono";
-import {clerkMiddleware, getAuth} from '@hono/clerk-auth';
+import {clerkMiddleware} from '@hono/clerk-auth';
 import {createRequestHandler} from "react-router";
 import {timeout} from 'hono/timeout'
 import {secureHeaders} from 'hono/secure-headers'
+import {storeEvent} from "~/backend/storeEvent";
 
 const app = new Hono<{ Bindings: Env }>()
     .use(secureHeaders())
@@ -14,14 +15,11 @@ const app = new Hono<{ Bindings: Env }>()
         })
         return middleware(c, next)
     })
-    .get('/api/protected', (c) => {
-        const auth = getAuth(c);
-
-        if (!auth?.userId) {
-            return c.json({message: 'Not logged in'}, 401);
-        }
-
-        return c.json({message: 'Logged in', userId: auth.userId});
+    .post('/api/store',async (context) => {
+        const request = await context.req.json()
+        console.log("req", request)
+        await storeEvent({context, prompt: request.prompt})
+        return context.json({success: true});
     }).get("*", (c) => {
         const requestHandler = createRequestHandler(
             () => import("virtual:react-router/server-build"),

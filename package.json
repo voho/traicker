@@ -21,11 +21,18 @@
     "@clerk/clerk-react": "^5.40.0",
     "@clerk/react-router": "^1.8.11",
     "@hono/clerk-auth": "^3.0.3",
+    "@libsql/kysely-libsql": "^0.4.1",
+    "@tanstack/react-query": "^5.84.2",
     "hono": "^4.8.2",
     "isbot": "5.1.26",
+    "kysely": "^0.28.5",
+    "kysely-codegen": "^0.18.5",
+    "kysely-d1": "^0.4.0",
+    "openai": "^5.12.2",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "react-router": "7.6.3"
+    "react-router": "7.6.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.7.5",
@@ -43,7 +50,12 @@
   },
   "scripts": {
     "build": "react-router build",
-    "cf-typegen": "wrangler types",
+    "types": "wrangler types",
+    "db:manage": "npx d1s",
+    "db:migrate:create": "wrangler d1 migrations create db-traicker-dev $1",
+    "db:migrate:local": "wrangler d1 migrations apply --local db-traicker-dev",
+    "db:migrate:remote": "wrangler d1 migrations apply --remote db-traicker-dev",
+    "db:types": "npx kysely-codegen",
     "deploy": "npm run build && wrangler deploy",
     "dev": "react-router dev",
     "preview": "npm run build && vite preview",

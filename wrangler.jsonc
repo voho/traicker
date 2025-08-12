@@ -4,6 +4,9 @@
  */ {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "traicker",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "compatibility_date": "2025-04-01",
   "main": "./workers/app.ts",
   "vars": {
@@ -23,6 +26,13 @@
    * databases, object storage, AI inference, real-time communication and more.
    * https://developers.cloudflare.com/workers/runtime-apis/bindings/
    */
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "db-traicker-dev",
+      "database_id": "dc6f0f61-4e62-4b54-ba97-aed1885bd593"
+    }
+  ],
   "secrets_store_secrets": [
     {
       "binding": "CLERK_PUBLISHABLE_KEY",
@@ -59,5 +69,5 @@
    * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
    */
   // "services": [{ "binding": "MY_SERVICE", "service": "my-service" }]
-  "upload_source_maps": true
+  "upload_source_maps": true,
 }
