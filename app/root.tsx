@@ -1,4 +1,4 @@
-import {isRouteErrorResponse, Meta, Outlet, Scripts, ScrollRestoration,} from "react-router";
+import {isRouteErrorResponse, Meta, Outlet, Scripts, ScrollRestoration, Links} from "react-router";
 import {rootAuthLoader} from '@clerk/react-router/ssr.server'
 import {ClerkProvider, SignedIn, SignedOut, UserButton, SignInButton} from '@clerk/react-router'
 import type {Route} from "./+types/root";
@@ -26,6 +26,7 @@ export function Layout({children}: { children: React.ReactNode }) {
             <meta charSet="utf-8"/>
             <meta name="viewport" content="width=device-width, initial-scale=1"/>
             <Meta/>
+            <Links/>
         </head>
         <body>
         {children}
