@@ -4,6 +4,7 @@ import {createRequestHandler} from "react-router";
 import {timeout} from 'hono/timeout'
 import {secureHeaders} from 'hono/secure-headers'
 import {storeEvent} from "~/backend/storeEvent";
+import {getEvents} from "~/backend/getEvents";
 
 const app = new Hono<{ Bindings: Env }>()
     .use(secureHeaders())
@@ -20,7 +21,12 @@ const app = new Hono<{ Bindings: Env }>()
         console.log("req", request)
         await storeEvent({context, prompt: request.prompt})
         return context.json({success: true});
-    }).get("*", (c) => {
+    })
+    .get('/api/events',async (context) => {
+        const events = await getEvents({context, paging: {pageSize: 100, page: 0}})
+        return context.json(events);
+    })
+    .get("*", (c) => {
         const requestHandler = createRequestHandler(
             () => import("virtual:react-router/server-build"),
             import.meta.env.MODE,
