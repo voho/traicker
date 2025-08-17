@@ -5,6 +5,7 @@ import {timeout} from 'hono/timeout'
 import {secureHeaders} from 'hono/secure-headers'
 import {storeEvent} from "~/backend/storeEvent";
 import {getEvents} from "~/backend/getEvents";
+import {getMonthlySummary} from "~/backend/getMonthlySummary";
 
 const app = new Hono<{ Bindings: Env }>()
     .use(secureHeaders())
@@ -25,6 +26,11 @@ const app = new Hono<{ Bindings: Env }>()
     .get('/api/events',async (context) => {
         const events = await getEvents({context, paging: {pageSize: 100, page: 0}})
         return context.json(events);
+    })
+    .get('/api/report/summary/:year/:month', async (context) => {
+        const {month, year} = context.req.param()
+        const summary = await getMonthlySummary({context, month: parseInt(month), year: parseInt(year)})
+        return context.json(summary)
     })
     .get("*", (c) => {
         const requestHandler = createRequestHandler(

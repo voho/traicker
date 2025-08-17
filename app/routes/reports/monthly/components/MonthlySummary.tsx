@@ -1,11 +1,26 @@
+import { useQuery } from '@tanstack/react-query';
+import { apiClient } from '~/globals';
 import { PriceDisplay } from '~/routes/reports/components/PriceDisplay';
 
-export function MonthlySummary() {
-  // In a real app, this would come from a loader or API call
-  const monthlyData = {
-    income: 22500,
-    expenses: -17830
-  };
+interface MonthlySummaryProps {
+  month: number;
+  year: number;
+}
+
+export function MonthlySummary({ month, year }: MonthlySummaryProps) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['monthlySummary', year, month],
+    queryFn: () =>
+      apiClient.api.report.summary[':year'][':month']
+        .$get({
+          param: { year: String(year), month: String(month) },
+        })
+        .then((res) => res.json()),
+  });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="bg-gray-800 rounded-lg p-6">
@@ -15,13 +30,13 @@ export function MonthlySummary() {
         <div className="bg-gray-700/30 p-4 rounded-lg">
           <h4 className="font-medium mb-2">Celkové příjmy</h4>
           <p className="text-2xl font-bold">
-            <PriceDisplay amount={monthlyData.income} />
+            <PriceDisplay amount={data?.totalIncome ?? 0} />
           </p>
         </div>
         <div className="bg-gray-700/30 p-4 rounded-lg">
           <h4 className="font-medium mb-2">Celkové výdaje</h4>
           <p className="text-2xl font-bold">
-            <PriceDisplay amount={monthlyData.expenses} />
+            <PriceDisplay amount={-(data?.totalExpense ?? 0)} />
           </p>
         </div>
       </div>
