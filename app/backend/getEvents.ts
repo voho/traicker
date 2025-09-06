@@ -16,6 +16,7 @@ type Item = {
     currency?: string
     explanationText?: string
     explanationConfidence?: number
+    aiModel?: string
 }
 
 export const getEvents = async ({context, paging}: Params): Promise<PagedResult<Item>> => {
@@ -38,7 +39,8 @@ export const getEvents = async ({context, paging}: Params): Promise<PagedResult<
             "currency",
             "description",
             "ai_explain",
-            "ai_confidence"
+            "ai_confidence",
+            "ai_model"
         ])
         .orderBy("effective_at", "desc")
         .offset(paging.page * paging.pageSize)
@@ -62,7 +64,8 @@ export const getEvents = async ({context, paging}: Params): Promise<PagedResult<
             explanationText: it.ai_explain ?? undefined,
             explanationConfidence: it.ai_confidence ?? undefined,
             amount,
-            currency: it.currency ?? undefined
+            currency: it.currency ?? undefined,
+            aiModel: it.ai_model ?? undefined
         });
     }))
 }

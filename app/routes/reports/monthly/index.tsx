@@ -23,7 +23,7 @@ export default function MonthlyReport() {
       />
       <AiRecommendation />
       <MonthlySummary month={date.month} year={date.year} />
-      <MonthlyOverviewChart />
+      <MonthlyOverviewChart month={date.month} year={date.year} />
     </div>
   );
 }

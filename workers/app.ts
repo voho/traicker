@@ -4,6 +4,8 @@ import {createRequestHandler} from "react-router";
 import {timeout} from 'hono/timeout'
 import {secureHeaders} from 'hono/secure-headers'
 import {storeEvent} from "~/backend/storeEvent";
+import {storeManualEvent} from "~/backend/storeManualEvent";
+import { ZodError } from 'zod'
 import {getEvents} from "~/backend/getEvents";
 import {getMonthlySummary} from "~/backend/getMonthlySummary";
 
@@ -18,10 +20,28 @@ const app = new Hono<{ Bindings: Env }>()
         return middleware(c, next)
     })
     .post('/api/store',async (context) => {
-        const request = await context.req.json()
-        console.log("req", request)
-        await storeEvent({context, prompt: request.prompt})
-        return context.json({success: true});
+        try {
+            const request = await context.req.json()
+            await storeEvent({context, prompt: request.prompt})
+            return context.json({success: true});
+        } catch (e) {
+            if (e instanceof ZodError) {
+                return context.json({success: false, errors: e.flatten()}, 400)
+            }
+            throw e
+        }
+    })
+    .post('/api/store-manual', async (context) => {
+        try {
+            const request = await context.req.json()
+            await storeManualEvent({ context, input: request })
+            return context.json({success: true});
+        } catch (e) {
+            if (e instanceof ZodError) {
+                return context.json({success: false, errors: e.flatten()}, 400)
+            }
+            throw e
+        }
     })
     .get('/api/events',async (context) => {
         const events = await getEvents({context, paging: {pageSize: 100, page: 0}})
