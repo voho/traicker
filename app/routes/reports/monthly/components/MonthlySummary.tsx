@@ -19,7 +19,7 @@ export function MonthlySummary({ month, year }: MonthlySummaryProps) {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Načítám...</div>;
   }
 
   return (

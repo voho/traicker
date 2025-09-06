@@ -16,8 +16,8 @@ export default function Reports({}: Route.ComponentProps) {
       <div className="container mx-auto p-4">
         <ReportHeader />
         <div className="flex space-x-4 mb-4">
-          <ReportMenuItem to="/reports/monthly" label="Monthly Overview" />
-          <ReportMenuItem to="/reports/history" label="History" />
+          <ReportMenuItem to="/reports/monthly" label="Měsíční přehled" />
+          <ReportMenuItem to="/reports/history" label="Historie" />
         </div>
       </div>
       <div className="container mx-auto p-4">
