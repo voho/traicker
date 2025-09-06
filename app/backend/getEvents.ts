@@ -22,38 +22,47 @@ export const getEvents = async ({context, paging}: Params): Promise<PagedResult<
     const db = getDb(context)
     const userId = getLoggedUserOrFail(context)
 
-    const query = db.selectFrom("events")
+    const query = (db as unknown as any).selectFrom("event")
         .where("user_id", "=", userId)
-        .where("status", "=", "done")
+        .where("deleted_at", "is", null)
 
     const count = await query
-        .select(eb => eb.fn.countAll().as("count"))
+        .select((eb: any) => eb.fn.countAll().as("count"))
         .executeTakeFirstOrThrow()
 
     const payload = await query
-        .select(["ai_date", "ai_type", "ai_amount", "ai_currency", "ai_desc", "ai_explain", "ai_confidence"])
-        .orderBy("ai_date desc")
+        .select([
+            "effective_at",
+            "type",
+            "amount",
+            "currency",
+            "description",
+            "ai_explain",
+            "ai_confidence"
+        ])
+        .orderBy("effective_at", "desc")
         .offset(paging.page * paging.pageSize)
         .limit(paging.pageSize)
         .execute()
 
-    return getPagedResult(paging, Number(count.count), payload.map(it => {
+    return getPagedResult(paging, Number((count as any).count), payload.map((it: any) => {
         let amount: number | undefined = undefined
+        const val = Number(it.amount)
 
-        if (it.ai_type === 'expense' && it.ai_amount) {
-            amount = -it.ai_amount
-        } else if (it.ai_type === 'income' && it.ai_amount) {
-            amount = it.ai_amount
+        if (it.type === 'expense' && !Number.isNaN(val)) {
+            amount = -val
+        } else if (it.type === 'income' && !Number.isNaN(val)) {
+            amount = val
         }
 
         return ({
-            dateIso: it.ai_date ?? undefined,
-            type: it.ai_type ?? undefined,
-            item: it.ai_desc ?? undefined,
+            dateIso: it.effective_at ?? undefined,
+            type: it.type ?? undefined,
+            item: it.description ?? undefined,
             explanationText: it.ai_explain ?? undefined,
             explanationConfidence: it.ai_confidence ?? undefined,
             amount,
-            currency: it.ai_currency ?? undefined
+            currency: it.currency ?? undefined
         });
     }))
 }

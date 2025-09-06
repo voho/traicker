@@ -14,31 +14,69 @@ export interface _CfMETADATA {
   value: Buffer | null;
 }
 
+export interface Category {
+  category_id: string;
+  color: string | null;
+  created_at: string;
+  deleted_at: string | null;
+  description: string | null;
+  emoji: string | null;
+  parent_category_id: string | null;
+  title: string;
+  updated_at: string;
+  user_id: string;
+}
+
 export interface D1Migrations {
   applied_at: Generated<string>;
   id: Generated<number | null>;
   name: string | null;
 }
 
-export interface Events {
-  ai_amount: number | null;
-  ai_confidence: number | null;
-  ai_currency: string | null;
-  ai_date: string | null;
-  ai_desc: string | null;
-  ai_explain: string | null;
-  ai_type: string | null;
+export interface Event {
+  ai_confidence: number;
+  ai_explain: string;
+  ai_model: string;
+  amount: number;
   created_at: string;
+  currency: string;
+  deleted_at: string | null;
+  description: string;
   effective_at: string;
   event_id: string;
-  prompt: string;
-  status: string;
+  raw_event_id: string | null;
+  type: string;
   updated_at: string;
+  user_id: string;
+}
+
+export interface EventCategory {
+  category_id: string;
+  created_at: string;
+  deleted_at: string | null;
+  event_id: string;
+  updated_at: string;
+}
+
+export interface EventRaw {
+  created_at: string;
+  error: string | null;
+  prompt: string;
+  raw_event_id: string;
+  status: string;
+  user_id: string;
+}
+
+export interface User {
   user_id: string;
 }
 
 export interface DB {
   _cf_METADATA: _CfMETADATA;
+  category: Category;
   d1_migrations: D1Migrations;
-  events: Events;
+  event: Event;
+  event_category: EventCategory;
+  event_raw: EventRaw;
+  user: User;
 }

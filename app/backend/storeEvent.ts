@@ -2,6 +2,7 @@ import {v4 as uuidv4} from 'uuid';
 import {type CustomContext, getDb} from "~/globals";
 import {getLoggedUserOrFail} from "~/backend/assert/getLoggedUserOrFail";
 import {processEvent} from "~/backend/processEvent";
+import { ensureUser } from './ensureUser';
 
 type Params = {
     context: CustomContext
@@ -13,12 +14,12 @@ export const storeEvent = async ({context, prompt}: Params) => {
     const loggedUserId = getLoggedUserOrFail(context)
     const randomId = uuidv4()
 
-    await db.insertInto("events")
+    await ensureUser({context})
+
+    await db.insertInto("event_raw")
         .values({
             created_at: new Date().toUTCString(),
-            updated_at: new Date().toISOString(),
-            effective_at: new Date().toUTCString(),
-            event_id: randomId,
+            raw_event_id: randomId,
             user_id: loggedUserId,
             status: 'new',
             prompt
@@ -26,5 +27,5 @@ export const storeEvent = async ({context, prompt}: Params) => {
         .execute()
 
     // keep execute in background
-    context.executionCtx.waitUntil(processEvent({context, eventId: randomId, prompt}))
+    context.executionCtx.waitUntil(processEvent({context, rawEventId: randomId, prompt}))
 }

@@ -17,29 +17,29 @@ export const getMonthlySummary = async ({ context, month, year }: Params) => {
   const endDate = new Date(Date.UTC(year, month, 1));
 
   const daily = await db
-    .selectFrom("events")
+    .selectFrom("event")
     .select([
-      sql`strftime('%d', ai_date)`.as("day"),
-      sql`SUM(CASE WHEN ai_type = 'income' THEN ai_amount ELSE 0 END)`.as("income"),
-      sql`SUM(CASE WHEN ai_type = 'expense' THEN ai_amount ELSE 0 END)`.as("expense"),
+      sql`strftime('%d', effective_at)`.as("day"),
+      sql`SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END)`.as("income"),
+      sql`SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END)`.as("expense"),
     ])
     .where("user_id", "=", userId)
-    .where("status", "=", "done")
-    .where("ai_date", ">=", startDate.toISOString())
-    .where("ai_date", "<", endDate.toISOString())
+    .where("deleted_at", "is", null)
+    .where("effective_at", ">=", startDate.toISOString())
+    .where("effective_at", "<", endDate.toISOString())
     .groupBy("day")
     .execute();
 
   const totals = await db
-    .selectFrom("events")
+    .selectFrom("event")
     .select([
-      sql`SUM(CASE WHEN ai_type = 'income' THEN ai_amount ELSE 0 END)`.as("totalIncome"),
-      sql`SUM(CASE WHEN ai_type = 'expense' THEN ai_amount ELSE 0 END)`.as("totalExpense"),
+      sql`SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END)`.as("totalIncome"),
+      sql`SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END)`.as("totalExpense"),
     ])
     .where("user_id", "=", userId)
-    .where("status", "=", "done")
-    .where("ai_date", ">=", startDate.toISOString())
-    .where("ai_date", "<", endDate.toISOString())
+    .where("deleted_at", "is", null)
+    .where("effective_at", ">=", startDate.toISOString())
+    .where("effective_at", "<", endDate.toISOString())
     .executeTakeFirst();
 
   const dailySummary = daily.reduce((acc, row) => {
