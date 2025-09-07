@@ -10,13 +10,13 @@ interface MonthlySummaryProps {
 export function MonthlySummary({ month, year }: MonthlySummaryProps) {
   const { data, isLoading } = useQuery({
     queryKey: ['monthlySummary', year, month],
-    queryFn: () =>
-      apiClient.api.report.summary[':year'][':month']
-        .$get({
+    queryFn: () => {
+        const res = apiClient.api.report.summary[':year'][':month'].$get({
           param: { year: String(year), month: String(month) },
-        })
-        .then((res) => res.json()),
-  });
+        });
+        return res.then((res) => res.json());
+      },
+    });
 
   if (isLoading) {
     return <div>Načítám...</div>;

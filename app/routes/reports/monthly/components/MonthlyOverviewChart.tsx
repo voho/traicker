@@ -19,10 +19,10 @@ type Props = {
 export function MonthlyOverviewChart({ month, year }: Props) {
   const { data, isLoading } = useQuery({
     queryKey: ["monthlySummaryChart", year, month],
-    queryFn: () =>
-      apiClient.api.report.summary[":year"][":month"]
-        .$get({ param: { year: String(year), month: String(month) } })
-        .then((res) => res.json()),
+    queryFn: () => {
+      const res = apiClient.api.report.summary[":year"][":month"].$get(      { param: { year: String(year), month: String(month) } })
+      return res.then(rest => rest.json())
+    }
   });
 
   const daysInMonth = new Date(year, month, 0).getDate();
@@ -63,10 +63,10 @@ export function MonthlyOverviewChart({ month, year }: Props) {
               />
               <Tooltip
                 contentStyle={{ background: "#1F2937", border: "1px solid #374151", borderRadius: 8 }}
-                formatter={(value: any, name) => [formatCZK(Number(value)), name === "income" ? "Příjmy" : "Výdaje"]}
+                formatter={(value: any, name) => [formatCZK(Number(value)), String(name)]}
                 labelFormatter={(label) => `Den ${label}`}
               />
-              <Legend formatter={(val) => (val === "income" ? "Příjmy" : "Výdaje")} />
+              <Legend />
               <Bar dataKey="income" fill="#10B981" name="Příjmy" radius={[4, 4, 0, 0]} />
               <Bar dataKey="expense" fill="#EF4444" name="Výdaje" radius={[4, 4, 0, 0]} />
             </BarChart>

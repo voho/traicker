@@ -18,16 +18,8 @@ export function TransactionList({ transactions }: Props) {
   const [editState, setEditState] = useState<{open: boolean, tx?: Transaction}>({open: false});
 
   const deleteMutation = useMutation({
-    mutationKey: ["delete-event"],
-    mutationFn: async (eventId: string) => {
-      const res = await apiClient.api.event[":eventId"].$delete({ param: { eventId } });
-      if (!res.ok) throw new Error("Smazání se nezdařilo");
-      return res.json();
-    },
-    onSuccess: () => {
-      // Invalidate all queries (no await)
-      queryClient.invalidateQueries();
-    }
+    mutationFn: (eventId: string) => apiClient.api.event[":eventId"].$delete({ param: { eventId } }),
+    onSuccess: () => {      queryClient.invalidateQueries()    }
   });
 
   return (

@@ -65,7 +65,6 @@ export function AddManualModal({ isOpen, onClose }: Props) {
     });
 
   const { mutate, isPending } = useMutation({
-    mutationKey: ["store-manual-event"],
     mutationFn: async (payload: {
       effective_at: string;
       description: string;
@@ -74,12 +73,11 @@ export function AddManualModal({ isOpen, onClose }: Props) {
       currency: string;
     }) => {
       const parsed = manualEventSchema.parse(payload);
-      const res = await apiClient.api["store-manual"].$post({ json: parsed });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.errors ? JSON.stringify(body.errors) : "Chyba při ukládání");
-      }
-      return res.json();
+           const res = await apiClient.api["store-manual"].$post({ json: parsed });
+           if (!res.ok) {
+             throw await res.json()
+           }
+           return await res.json();
     },
     onSuccess: () => {
       setError(null);

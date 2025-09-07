@@ -21,7 +21,7 @@ export default function MonthlyReport() {
         year={date.year}
         onMonthChanged={handleMonthChanged}
       />
-      <AiRecommendation />
+      <AiRecommendation month={date.month} year={date.year} />
       <MonthlySummary month={date.month} year={date.year} />
       <MonthlyOverviewChart month={date.month} year={date.year} />
     </div>

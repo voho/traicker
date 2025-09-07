@@ -1,5 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
-import { getDb, type CustomContext, getAiClient } from "~/globals";
+import { getDb, type CustomContext } from "~/globals";
 import { getLoggedUserOrFail } from "./assert/getLoggedUserOrFail";
 
 type Params = {

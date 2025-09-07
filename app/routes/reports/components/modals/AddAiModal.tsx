@@ -9,22 +9,21 @@ type Props = {
   onClose: () => void;
 };
 
+
 export function AddAiModal({ isOpen, onClose }: Props) {
   const [prompt, setPrompt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { mutate, isPending } = useMutation({
-    mutationKey: ["store-ai-event"],
     mutationFn: async (p: string) => {
       // Local validation via shared schema
       const parsed = storeEventSchema.parse({ prompt: p });
       const res = await apiClient.api.store.$post({ json: parsed });
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.errors ? JSON.stringify(body.errors) : "Chyba při ukládání");
+        throw await res.json()
       }
-      return res.json();
+      return await res.json();
     },
     onSuccess: () => {
       setPrompt("");
@@ -38,7 +37,7 @@ export function AddAiModal({ isOpen, onClose }: Props) {
     onError: (e: unknown) => {
       setError(e instanceof Error ? e.message : String(e));
     },
-  });
+  })
 
   return (
     <Modal

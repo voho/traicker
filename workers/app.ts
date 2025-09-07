@@ -10,6 +10,7 @@ import { editEvent } from "~/backend/editEvent";
 import { ZodError } from 'zod'
 import {getEvents} from "~/backend/getEvents";
 import {getMonthlySummary} from "~/backend/getMonthlySummary";
+import { getMonthlyTipFromAi } from "~/backend/ai/getMonthlyTipFromAi";
 
 const app = new Hono<{ Bindings: Env }>()
     .use(secureHeaders())
@@ -83,6 +84,16 @@ const app = new Hono<{ Bindings: Env }>()
         const {month, year} = context.req.param()
         const summary = await getMonthlySummary({context, month: parseInt(month), year: parseInt(year)})
         return context.json(summary)
+    })
+    .get('/api/ai/monthly-tip/:year/:month', async (context) => {
+        const { month, year } = context.req.param()
+        const m = parseInt(month)
+        const y = parseInt(year)
+        if (!Number.isFinite(m) || !Number.isFinite(y)) {
+            return context.json({ success: false, error: 'Invalid year or month' }, 400)
+        }
+        const tip = await getMonthlyTipFromAi({ context, year: y, month: m })
+        return context.json( tip )
     })
     .get("*", (c) => {
         const requestHandler = createRequestHandler(

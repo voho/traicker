@@ -34,11 +34,13 @@ export function Welcome() {
             if (!prompt.trim()) {
                 throw new Error("Zadejte prosím text pro odeslání");
             }
-            return await apiClient.api.store.$post({
-                json: {
-                    prompt: prompt.trim()
-                }
+            const res = await apiClient.api.store.$post({
+                json: { prompt: prompt.trim() }
             })
+            if (res.ok) {
+                return await res.json()
+            }
+            throw await res.json()
         },
         onMutate: async (prompt:string) => {
             setStatus("info");

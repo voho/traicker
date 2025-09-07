@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Modal } from "~/components/ui/Modal";
 import { apiClient } from "~/globals";
@@ -89,7 +89,6 @@ export function EditEventModal({ isOpen, onClose, eventId, initial }: Props) {
     });
 
   const { mutate, isPending } = useMutation({
-    mutationKey: ["edit-event", eventId],
     mutationFn: async () => {
       const payload = {
         effective_at: form.date
@@ -113,15 +112,11 @@ export function EditEventModal({ isOpen, onClose, eventId, initial }: Props) {
       currency: form.currency.toUpperCase(),
       };
       const parsed = manualEventSchema.parse(payload);
-      const res = await apiClient.api.event[":eventId"].$put({
-        param: { eventId },
-        json: parsed,
-      });
+      const res = await apiClient.api.event[":eventId"].$put({ param: { eventId }, json: parsed });
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body?.errors ? JSON.stringify(body.errors) : "Chyba při ukládání");
+        throw await res.json()
       }
-      return res.json();
+      return await res.json();
     },
     onSuccess: () => {
       // Invalidate all queries (no await) so visible data refreshes

@@ -1,6 +1,6 @@
 import {isRouteErrorResponse, Meta, Outlet, Scripts, ScrollRestoration, Links} from "react-router";
 import {rootAuthLoader} from '@clerk/react-router/ssr.server'
-import {ClerkProvider, SignedIn, SignedOut, UserButton, SignInButton} from '@clerk/react-router'
+import {ClerkProvider} from '@clerk/react-router'
 import type {Route} from "./+types/root";
 import "./app.css";
 import {QueryClientProvider} from "@tanstack/react-query";
