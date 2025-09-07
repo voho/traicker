@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { type CustomContext, getDb } from "~/globals";
 import { getLoggedUserOrFail } from "~/backend/assert/getLoggedUserOrFail";
-import { processEvent } from "~/backend/processEvent";
-import { ensureUser } from './ensureUser';
+import { processEvent } from "~/backend/event/processEvent";
+import { ensureUser } from '../user/ensureUser';
 import { storeEventSchema } from "~/schemas/event";
 
 type Params = {

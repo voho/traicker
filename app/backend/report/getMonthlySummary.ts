@@ -1,7 +1,7 @@
 import { sql } from "kysely";
 import type { CustomContext } from "~/globals";
 import { getDb } from "~/globals";
-import { getLoggedUserOrFail } from "./assert/getLoggedUserOrFail";
+import { getLoggedUserOrFail } from "../assert/getLoggedUserOrFail";
 
 type Params = {
   context: CustomContext;

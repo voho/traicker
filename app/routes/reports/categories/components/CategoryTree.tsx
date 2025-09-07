@@ -43,36 +43,36 @@ export const CategoryTree = ({ categories }: Props) => {
     if (children.length === 0) return null;
 
     return (
-      <section className="flex flex-col gap-4">
+      <section className="flex flex-col gap-3">
         {children.map((cat) => (
           <div
             key={cat.categoryId}
-            className="py-2 px-5 border border-white/10 rounded-xl bg-white/5 hover:border-white/20 transition-colors flex flex-col gap-3"
+            className="py-2 px-3 border border-white/10 rounded-xl bg-white/5 hover:border-white/20 transition-colors flex flex-col gap-2"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <span
-                className="inline-flex items-center justify-center rounded-md w-8 h-8 border border-white/10 flex-shrink-0"
+                className="inline-flex items-center justify-center rounded-md w-7 h-7 border border-white/10 flex-shrink-0"
                 style={{ background: cat.color ?? 'transparent' }}
                 aria-hidden
               >
                 {cat.emoji ? (
-                  <span className="text-base leading-none">{cat.emoji}</span>
+                  <span className="text-sm leading-none">{cat.emoji}</span>
                 ) : (
                   <span className="sr-only">Bez emoji</span>
                 )}
               </span>
               <div className="min-w-0">
                 <div
-                  className="font-semibold text-lg truncate"
+                  className="font-semibold truncate"
                   title={cat.description ?? cat.title}
                 >
                   {cat.title}
                 </div>
                 {cat.description ? (
-                  <div className="text-sm text-gray-400 truncate">{cat.description}</div>
+                  <div className="text-xs text-gray-400 truncate">{cat.description}</div>
                 ) : null}
               </div>
-              <div className="inline-flex items-center gap-3">
+              <div className="inline-flex items-center gap-2">
                 <button
                   type="button"
                   className="p-1 rounded-md border border-gray-700 hover:border-gray-600 text-gray-300 hover:text-white bg-transparent transition-colors"

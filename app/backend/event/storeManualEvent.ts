@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { getDb, type CustomContext } from '~/globals'
 import { getLoggedUserOrFail } from '~/backend/assert/getLoggedUserOrFail'
-import { ensureUser } from './ensureUser'
+import { ensureUser } from '../user/ensureUser'
 import { manualEventSchema } from "~/schemas/event"
 
 type Params = {
@@ -38,6 +38,7 @@ export const storeManualEvent = async ({ context, input }: Params) => {
       ai_explain: 'vloženo ručně',
       ai_confidence: 1,
       ai_model: 'manual',
+      category_id: parsed.categoryId ?? null,
     })
     .execute()
 }

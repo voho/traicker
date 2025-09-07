@@ -3,6 +3,7 @@ import { MonthlySummary } from "./components/MonthlySummary";
 import {AiRecommendation} from "~/routes/reports/monthly/components/AiRecommendation";
 import { MonthSelector } from "./components/MonthSelector";
 import { useState } from "react";
+import { TrendSummary } from "./components/TrendSummary";
 
 export default function MonthlyReport() {
   const [date, setDate] = useState({
@@ -15,7 +16,7 @@ export default function MonthlyReport() {
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       <MonthSelector
         month={date.month}
         year={date.year}
@@ -24,6 +25,7 @@ export default function MonthlyReport() {
       <AiRecommendation month={date.month} year={date.year} />
       <MonthlySummary month={date.month} year={date.year} />
       <MonthlyOverviewChart month={date.month} year={date.year} />
+      <TrendSummary />
     </div>
   );
 }

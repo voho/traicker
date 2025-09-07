@@ -24,8 +24,9 @@ export const manualEventSchema = z.object({
     .trim()
     .length(3, 'Měna musí mít 3 znaky')
     .transform((s) => s.toUpperCase())    
+}).extend({
+  categoryId: z.string().trim().min(1).optional(),
 })
 
 export type StoreEventInput = z.infer<typeof storeEventSchema>
 export type ManualEventInput = z.infer<typeof manualEventSchema>
-

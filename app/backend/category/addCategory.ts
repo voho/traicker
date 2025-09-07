@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import { getDb, type CustomContext } from '~/globals'
 import { getLoggedUserOrFail } from '~/backend/assert/getLoggedUserOrFail'
-import { ensureUser } from './ensureUser'
+import { ensureUser } from '../user/ensureUser'
 import { categoryInputSchema } from '~/schemas/category'
 
 type Params = {

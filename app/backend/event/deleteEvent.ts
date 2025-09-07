@@ -1,6 +1,6 @@
 import { getDb, type CustomContext } from "~/globals";
 import { getLoggedUserOrFail } from "~/backend/assert/getLoggedUserOrFail";
-import { NotFoundError } from "./errors/NotFoundError";
+import { NotFoundError } from "../errors/NotFoundError";
 
 type Params = {
   context: CustomContext;

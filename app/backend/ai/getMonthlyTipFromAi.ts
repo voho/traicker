@@ -1,7 +1,7 @@
 import type { CustomContext } from "~/globals";
 import { getAiClient } from "~/globals";
 import { getEventsForAi } from "~/backend/ai/context/getEventsForAi";
-import { getAiResult, type AiStringResult } from "../utils/getAiResult";
+import { getAiResult, type AiStringResult } from "../category/utils/getAiResult";
 
 type Params = {
   context: CustomContext;

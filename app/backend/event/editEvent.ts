@@ -1,7 +1,7 @@
 import { getDb, type CustomContext } from "~/globals";
 import { getLoggedUserOrFail } from "~/backend/assert/getLoggedUserOrFail";
 import { manualEventSchema } from "~/schemas/event";
-import { NotFoundError } from "./errors/NotFoundError";
+import { NotFoundError } from "../errors/NotFoundError";
 
 type Params = {
   context: CustomContext;
@@ -16,12 +16,14 @@ export const editEvent = async ({ context, eventId, input }: Params) => {
   const parsed = manualEventSchema.parse(input);
 
   // Normalize to UTC midnight (day resolution)
+
   const src = parsed.effective_at ? new Date(parsed.effective_at) : new Date();
+  
   const effectiveAt = new Date(
     Date.UTC(src.getUTCFullYear(), src.getUTCMonth(), src.getUTCDate())
   ).toISOString();
 
-  const existing = await (db as any)
+  const existing = await db
     .selectFrom("event")
     .select(["event_id"]) // minimal
     .where("event_id", "=", eventId)
@@ -41,6 +43,7 @@ export const editEvent = async ({ context, eventId, input }: Params) => {
       type: parsed.type,
       amount: parsed.amount,
       currency: parsed.currency,
+      category_id: parsed.categoryId ?? null,
       ai_confidence: 1,
       ai_model: "manual",
       ai_explain: "ručně upraveno",
@@ -49,6 +52,4 @@ export const editEvent = async ({ context, eventId, input }: Params) => {
     .where("event_id", "=", eventId)
     .where("user_id", "=", userId)
     .execute();
-
-  return { success: true };
 };

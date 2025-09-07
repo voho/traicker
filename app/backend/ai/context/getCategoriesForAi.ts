@@ -6,7 +6,9 @@ type Params = {
   context: CustomContext;
 };
 
-export const getCategories = async ({ context }: Params) => {
+// Fetches user's categories and returns a JSON string with
+// id, parentId, name, description for each category.
+export const getCategoriesForAi = async ({ context }: Params): Promise<string> => {
   const db = getDb(context);
   const userId = getLoggedUserOrFail(context);
 
@@ -14,10 +16,8 @@ export const getCategories = async ({ context }: Params) => {
     .selectFrom("category")
     .select([
       "category_id",
-      "title",
       "parent_category_id",
-      "emoji",
-      "color",
+      "title",
       "description",
     ])
     .where("user_id", "=", userId)
@@ -25,14 +25,13 @@ export const getCategories = async ({ context }: Params) => {
     .orderBy("title", "asc")
     .execute();
 
+  const categories = rows.map((r) => ({
+    id: r.category_id,
+    parentId: r.parent_category_id ?? undefined,
+    name: r.title,
+    description: r.description ?? undefined,
+  }));
 
-  return { categories: rows.map(it => ({
-    categoryId: it.category_id,
-    parentCategoryId: it.parent_category_id ?? undefined,
-    title: it.title,
-    emoji: it.emoji ?? undefined,
-    color: it.color ?? undefined,
-    description: it.description ?? undefined
-  })) };
+  return JSON.stringify(categories);
 };
 

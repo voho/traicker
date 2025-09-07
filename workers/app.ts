@@ -3,18 +3,22 @@ import {clerkMiddleware} from '@hono/clerk-auth';
 import {createRequestHandler} from "react-router";
 import {timeout} from 'hono/timeout'
 import {secureHeaders} from 'hono/secure-headers'
-import {storeEvent} from "~/backend/storeEvent";
-import {storeManualEvent} from "~/backend/storeManualEvent";
-import { deleteEvent } from "~/backend/deleteEvent";
-import { editEvent } from "~/backend/editEvent";
+import {storeEvent} from "~/backend/event/storeEvent";
+import {storeManualEvent} from "~/backend/event/storeManualEvent";
+import { deleteEvent } from "~/backend/event/deleteEvent";
+import { editEvent } from "~/backend/event/editEvent";
 import { ZodError } from 'zod'
-import {getEvents} from "~/backend/getEvents";
-import {getMonthlySummary} from "~/backend/getMonthlySummary";
+import {getEvents} from "~/backend/event/getEvents";
+import {getMonthlySummary} from "~/backend/report/getMonthlySummary";
+import { getMonthlySummaryTrendPerCategory } from "~/backend/report/getMonthlySummaryTrendPerCategory";
+import { getMonthlySummaryPerCategory } from "~/backend/report/getMonthlySummaryPerCategory";
 import { getMonthlyTipFromAi } from "~/backend/ai/getMonthlyTipFromAi";
-import { getCategories } from "~/backend/getCategories";
-import { addCategory } from "~/backend/addCategory";
-import { editCategory } from "~/backend/editCategory";
-import { deleteCategory } from "~/backend/deleteCategory";
+import { getCategories } from "~/backend/category/getCategories";
+import { addCategory } from "~/backend/category/addCategory";
+import { editCategory } from "~/backend/category/editCategory";
+import { categorizeEvents } from "~/backend/event/categorizeEvents";
+import { resetCategories } from "~/backend/category/resetCategories";
+import { deleteCategory } from "~/backend/category/deleteCategory";
 
 const app = new Hono<{ Bindings: Env }>()
     .use(secureHeaders())
@@ -88,6 +92,23 @@ const app = new Hono<{ Bindings: Env }>()
         const categories = await getCategories({ context })
         return context.json(categories)
     })
+    .post('/api/categorize-events', async (context) => {
+        try {
+            const body = await context.req.json().catch(() => ({})) as { force?: boolean }
+            const result = await categorizeEvents({ context, input: { force: Boolean(body?.force) } })
+            return context.json(result)
+        } catch (e) {
+            return context.json({ success: false }, 400)
+        }
+    })
+    .post('/api/reset-categories', async (context) => {
+        try {
+            const result = await resetCategories({ context })
+            return context.json(result)
+        } catch (e) {
+            return context.json({ success: false }, 400)
+        }
+    })
     .post('/api/category', async (context) => {
         try {
             const body = await context.req.json()
@@ -134,6 +155,17 @@ const app = new Hono<{ Bindings: Env }>()
         const {month, year} = context.req.param()
         const summary = await getMonthlySummary({context, month: parseInt(month), year: parseInt(year)})
         return context.json(summary)
+    })
+    .get('/api/report/summary-per-category/:year/:month', async (context) => {
+        const { month, year } = context.req.param()
+        const m = parseInt(month)
+        const y = parseInt(year)
+        const data = await getMonthlySummaryPerCategory({ context, month: m, year: y })
+        return context.json(data)
+    })
+    .get('/api/report/summary-trend-per-category', async (context) => {
+        const trend = await getMonthlySummaryTrendPerCategory({ context })
+        return context.json(trend)
     })
     .get('/api/ai/monthly-tip/:year/:month', async (context) => {
         const { month, year } = context.req.param()

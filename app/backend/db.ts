@@ -34,10 +34,14 @@ export interface D1Migrations {
 }
 
 export interface Event {
+  ai_category_confidence: number | null;
+  ai_category_explain: string | null;
+  ai_category_model: string | null;
   ai_confidence: number;
   ai_explain: string;
   ai_model: string;
   amount: number;
+  category_id: string | null;
   created_at: string;
   currency: string;
   deleted_at: string | null;
@@ -48,14 +52,6 @@ export interface Event {
   type: string;
   updated_at: string;
   user_id: string;
-}
-
-export interface EventCategory {
-  category_id: string;
-  created_at: string;
-  deleted_at: string | null;
-  event_id: string;
-  updated_at: string;
 }
 
 export interface EventRaw {
@@ -76,7 +72,6 @@ export interface DB {
   category: Category;
   d1_migrations: D1Migrations;
   event: Event;
-  event_category: EventCategory;
   event_raw: EventRaw;
   user: User;
 }

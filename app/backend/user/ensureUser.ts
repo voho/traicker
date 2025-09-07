@@ -1,5 +1,5 @@
 import { getDb, type CustomContext } from "~/globals";
-import { getLoggedUserOrFail } from "./assert/getLoggedUserOrFail";
+import { getLoggedUserOrFail } from "../assert/getLoggedUserOrFail";
 
 type Params = {
   context: CustomContext;

@@ -1,7 +1,7 @@
 import { getDb, type CustomContext } from "~/globals";
 import { getLoggedUserOrFail } from "~/backend/assert/getLoggedUserOrFail";
 import { categoryInputSchema } from "~/schemas/category";
-import { NotFoundError } from "./errors/NotFoundError";
+import { NotFoundError } from "../errors/NotFoundError";
 
 type Params = {
   context: CustomContext;

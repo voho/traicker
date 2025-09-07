@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Modal } from "~/components/ui/Modal";
 import { apiClient } from "~/globals";
 import { manualEventSchema } from "~/schemas/event";
+import type { InferResponseType } from "hono";
 
 type Props = {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export function EditEventModal({ isOpen, onClose, eventId, initial }: Props) {
       | "expense",
     amount: initial.amount ? String(Math.abs(initial.amount)) : "",
     currency: (initial.currency ?? "CZK").toUpperCase(),
+    categoryId: "",
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +51,7 @@ export function EditEventModal({ isOpen, onClose, eventId, initial }: Props) {
             : "expense",
         amount: initial.amount ? String(Math.abs(initial.amount)) : "",
         currency: (initial.currency ?? "CZK").toUpperCase(),
+        categoryId: (initial as any).categoryId ?? "",
       });
       setFieldErrors({});
       setError(null);
@@ -78,6 +81,7 @@ export function EditEventModal({ isOpen, onClose, eventId, initial }: Props) {
         type: next.type,
         amount: parseFloat(next.amount || "0"),
         currency: next.currency,
+        categoryId: next.categoryId || undefined,
       };
       const res = manualEventSchema.safeParse(candidate);
       if (!res.success) {
@@ -110,6 +114,7 @@ export function EditEventModal({ isOpen, onClose, eventId, initial }: Props) {
       type: form.type,
       amount: parseFloat(form.amount || "0"),
       currency: form.currency.toUpperCase(),
+      categoryId: form.categoryId || undefined,
       };
       const parsed = manualEventSchema.parse(payload);
       const res = await apiClient.api.event[":eventId"].$put({ param: { eventId }, json: parsed });
@@ -223,8 +228,36 @@ export function EditEventModal({ isOpen, onClose, eventId, initial }: Props) {
           </div>
         </div>
 
+        <CategorySelect value={form.categoryId} onChange={(v) => setForm((f) => ({ ...f, categoryId: v }))} />
+
         {error && <p className="text-sm text-red-400">{error}</p>}
       </form>
     </Modal>
+  );
+}
+
+type Category = NonNullable<InferResponseType<typeof apiClient.api.categories.$get>>["categories"][number];
+function CategorySelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { data } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => apiClient.api.categories.$get().then((r) => r.json()),
+  });
+  const categories: Category[] = data?.categories ?? [];
+  return (
+    <div>
+      <label className="block text-sm text-gray-300 mb-1">Kategorie</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full p-2 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-1 focus:ring-white/30 focus:border-transparent"
+      >
+        <option value="">(bez kategorie)</option>
+        {categories.map((c) => (
+          <option key={c.categoryId} value={c.categoryId}>
+            {c.emoji ? `${c.emoji} ` : ""}{c.title}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }

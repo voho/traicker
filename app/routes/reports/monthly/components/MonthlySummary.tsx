@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '~/globals';
 import { PriceDisplay } from '~/routes/reports/components/PriceDisplay';
+import { CategoryTotalsTable } from "./CategoryTotalsTable";
 
 interface MonthlySummaryProps {
   month: number;
@@ -23,7 +24,7 @@ export function MonthlySummary({ month, year }: MonthlySummaryProps) {
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6">
+    <div className="bg-gray-800 rounded-lg p-6 space-y-6">
       <h3 className="text-xl mb-4">Finanční přehled</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -38,8 +39,9 @@ export function MonthlySummary({ month, year }: MonthlySummaryProps) {
           <p className="text-2xl font-bold">
             <PriceDisplay amount={-(data?.totalExpense ?? 0)} />
           </p>
-        </div>
+        </div>        
       </div>
+        <CategoryTotalsTable month={month} year={year} />
     </div>
   );
 }
