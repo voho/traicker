@@ -4,7 +4,6 @@ import { getLoggedUserOrFail } from "~/backend/assert/getLoggedUserOrFail";
 import { getCategoriesForAi } from "~/backend/ai/context/getCategoriesForAi";
 import type { Kysely } from "kysely";
 import type { DB } from "~/backend/db";
-import { getEvents as getEventsPage } from "~/backend/event/getEvents";
 
 type Params = {
   context: CustomContext;
@@ -44,10 +43,27 @@ const runCategorization = async ({ context, input }: Params) => {
   const pageSize = 10;
   let page = 0;
   for (;;) {
-    const paged = await getEventsPage({ context, paging: { page, pageSize } });
-    const eventsPage: EventRow[] = (paged.payload ?? []).map((it) => ({
+    const paged = await db.selectFrom("event")
+    .select([
+      "event_id as eventId",
+      "effective_at as dateIso",
+      "category_id as categoryId",
+      "description",
+      "type",
+      "amount",
+      "currency",
+    ])
+    .where("user_id", "=", userId)
+    .where("deleted_at", "is", null)
+    .where("category_id", "is", null)
+    .orderBy("effective_at", "desc")
+    .offset(page * pageSize)
+    .limit(pageSize)
+    .execute()
+
+    const eventsPage: EventRow[] = paged.map((it) => ({
       event_id: it.eventId ?? '',
-      description: it.item ?? '',
+      description: it.description ?? '',
       amount: Number(it.amount ?? 0),
       currency: it.currency ?? 'CZK',
       type: it.type ?? 'expense',
@@ -62,11 +78,11 @@ const runCategorization = async ({ context, input }: Params) => {
       const raw = await askAiForMapping(context, prompt);
       const mapping = parseAndValidateMapping(raw, categoriesJson, targetEvents);
       if (mapping) {
-        await applyMappings(db, mapping, 'gpt-4o-mini');
+        await applyMappings(db, mapping, 'gpt-4o');
       }
     }
 
-    if ((paged.payload?.length ?? 0) < pageSize) break;
+    if ((paged.length ?? 0) < pageSize) break;
     page += 1;
   }
 };
@@ -122,7 +138,7 @@ const buildCategorizationPrompt = (categoriesJson: string, events: EventRow[]) =
 const askAiForMapping = async (context: CustomContext, prompt: { system: string; user: string }) => {
   const ai = await getAiClient(context);
   const response = await ai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     messages: [
       { role: "system", content: prompt.system },
       { role: "user", content: prompt.user },
@@ -165,7 +181,7 @@ const applyMappings = async (
   const nowIso = new Date().toISOString();
   for (const m of mapping) {
     const conf = Number(m.confidence);
-    await (db as any)
+    await db
       .updateTable('event')
       .set({
         category_id: m.categoryId,
@@ -173,7 +189,7 @@ const applyMappings = async (
         ai_category_confidence: Number.isFinite(conf) ? Math.max(0, Math.min(1, conf)) : null,
         ai_category_model: model,
         updated_at: nowIso,
-      } as any)
+      })
       .where('event_id', '=', m.eventId)
       .execute();
   }
