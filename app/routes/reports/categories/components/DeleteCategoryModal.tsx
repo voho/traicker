@@ -59,10 +59,11 @@ export function DeleteCategoryModal({ isOpen, onClose, categoryId, title }: Prop
         </p>
         <p className="text-gray-400">
           Dojde k odstranění všech vazeb událostí na tuto kategorii. Samotné
-          události zůstanou zachovány. Kategorii můžete později vytvořit znovu.
+          události zůstanou zachovány. Všechny podkategorie této kategorie budou
+          přesunuty pod její původní nadřazenou kategorii. Kategorii můžete
+          později vytvořit znovu.
         </p>
       </div>
     </Modal>
   );
 }
-

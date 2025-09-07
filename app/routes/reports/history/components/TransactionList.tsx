@@ -1,4 +1,3 @@
-import { PriceDisplay } from '~/routes/reports/components/PriceDisplay';
 import type {InferResponseType} from "hono";
 import {apiClient} from "~/globals";
 import { PiMagicWand } from "react-icons/pi";
@@ -37,7 +36,7 @@ export function TransactionList({ transactions }: Props) {
         <tbody>
           {transactions.map((transaction, index) => (
             <tr key={index} className="border-b border-gray-700/50 hover:bg-gray-700/30">
-              <td className="py-3 px-4 text-right">{transaction.dateIso ? new Date(transaction.dateIso).toLocaleDateString('cs-CZ') : '-'}</td>
+              <td className="py-3 px-4 text-right whitespace-nowrap">{transaction.dateIso ? new Date(transaction.dateIso).toLocaleDateString('cs-CZ') : '-'}</td>
               <td className="py-3 px-4">
                 <div>{transaction.item ?? '-'}</div>
                 {transaction.explanationText ? (
@@ -62,10 +61,19 @@ export function TransactionList({ transactions }: Props) {
                   <div className="text-xs text-gray-600 mt-1">(jistota: {transaction.explanationConfidence})</div>
                 ) : null}
               </td>
-              <td className="py-3 px-4 text-right">
-                <PriceDisplay amount={transaction.amount ?? 0} />
+              <td className="py-3 px-4 text-right whitespace-nowrap">
+                {(() => {
+                  const amount = transaction.amount ?? 0;
+                  const formatted = new Intl.NumberFormat('cs-CZ').format(Math.abs(amount));
+                  const negative = amount < 0;
+                  const color = negative ? 'text-red-400' : 'text-green-400';
+                  const prefix = negative ? '-' : '+';
+                  return (
+                    <span className={`font-bold ${color}`}>{prefix}{formatted}</span>
+                  );
+                })()}
               </td>
-              <td className="py-3 px-4">{transaction.currency ?? '-'}</td>
+              <td className="py-3 px-4 whitespace-nowrap">{transaction.currency ?? '-'}</td>
               <td className="py-3 px-4 text-right">
                 <div className="inline-flex items-center gap-2">
                   <button

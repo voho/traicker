@@ -15,7 +15,7 @@ export const deleteCategory = async ({ context, categoryId }: Params) => {
   // Ensure the category exists and belongs to the current user
   const existing = await db
     .selectFrom("category")
-    .select(["category_id"]) // minimal
+    .select(["category_id", "parent_category_id"]) // minimal
     .where("category_id", "=", categoryId)
     .where("user_id", "=", userId)
     .where("deleted_at", "is", null)
@@ -24,6 +24,18 @@ export const deleteCategory = async ({ context, categoryId }: Params) => {
   if (!existing) {
     throw new NotFoundError("Category not found");
   }
+
+  // Re-parent direct children to the deleted category's parent
+  await db
+    .updateTable("category")
+    .set({
+      parent_category_id: existing.parent_category_id ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .where("parent_category_id", "=", categoryId)
+    .where("user_id", "=", userId)
+    .where("deleted_at", "is", null)
+    .execute();
 
   // Remove all event-category links for this category (hard delete is fine for link table)
   await db
@@ -41,4 +53,3 @@ export const deleteCategory = async ({ context, categoryId }: Params) => {
 
   return { success: true };
 };
-
