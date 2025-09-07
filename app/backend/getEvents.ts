@@ -9,6 +9,7 @@ type Params = {
 }
 
 type Item = {
+    eventId?: string
     dateIso?: string
     type?: string
     item?: string
@@ -33,6 +34,7 @@ export const getEvents = async ({context, paging}: Params): Promise<PagedResult<
 
     const payload = await query
         .select([
+            "event_id",
             "effective_at",
             "type",
             "amount",
@@ -58,6 +60,7 @@ export const getEvents = async ({context, paging}: Params): Promise<PagedResult<
         }
 
         return ({
+            eventId: it.event_id ?? undefined,
             dateIso: it.effective_at ?? undefined,
             type: it.type ?? undefined,
             item: it.description ?? undefined,

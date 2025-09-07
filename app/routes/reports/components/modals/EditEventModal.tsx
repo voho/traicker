@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Modal } from "~/components/ui/Modal";
 import { apiClient } from "~/globals";
@@ -7,33 +7,57 @@ import { manualEventSchema } from "~/schemas/event";
 type Props = {
   isOpen: boolean;
   onClose: () => void;
+  eventId: string;
+  initial: {
+    dateIso?: string;
+    description?: string;
+    type?: "income" | "expense" | string;
+    amount?: number;
+    currency?: string;
+  };
 };
 
-export function AddManualModal({ isOpen, onClose }: Props) {
-  const todayLocalDate = () => {
-    const d = new Date();
+export function EditEventModal({ isOpen, onClose, eventId, initial }: Props) {
+  const queryClient = useQueryClient();
+  const toLocalDate = (iso?: string) => {
+    if (!iso) return "";
+    const d = new Date(iso);
     const pad = (n: number) => String(n).padStart(2, "0");
-    const yyyy = d.getFullYear();
-    const mm = pad(d.getMonth() + 1);
-    const dd = pad(d.getDate());
-    return `${yyyy}-${mm}-${dd}`; // date input format
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   };
 
   const [form, setForm] = useState({
-    date: todayLocalDate(),
-    description: "",
-    type: "expense" as "expense" | "income",
-    amount: "",
-    currency: "CZK",
+    date: toLocalDate(initial.dateIso),
+    description: initial.description ?? "",
+    type: (initial.type === "income" || initial.type === "expense" ? initial.type : "expense") as
+      | "income"
+      | "expense",
+    amount: initial.amount ? String(Math.abs(initial.amount)) : "",
+    currency: (initial.currency ?? "CZK").toUpperCase(),
   });
-  const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
-  const queryClient = useQueryClient();
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setForm({
+        date: toLocalDate(initial.dateIso),
+        description: initial.description ?? "",
+        type:
+          initial.type === "income" || initial.type === "expense"
+            ? (initial.type as "income" | "expense")
+            : "expense",
+        amount: initial.amount ? String(Math.abs(initial.amount)) : "",
+        currency: (initial.currency ?? "CZK").toUpperCase(),
+      });
+      setFieldErrors({});
+      setError(null);
+    }
+  }, [isOpen, initial]);
 
   const update = (key: keyof typeof form, val: string) =>
     setForm((f) => {
       const next = { ...f, [key]: val };
-      // live validate minimal payload shape
       const candidate = {
         effective_at: next.date
           ? new Date(
@@ -65,16 +89,34 @@ export function AddManualModal({ isOpen, onClose }: Props) {
     });
 
   const { mutate, isPending } = useMutation({
-    mutationKey: ["store-manual-event"],
-    mutationFn: async (payload: {
-      effective_at: string;
-      description: string;
-      type: "income" | "expense";
-      amount: number;
-      currency: string;
-    }) => {
+    mutationKey: ["edit-event", eventId],
+    mutationFn: async () => {
+      const payload = {
+        effective_at: form.date
+          ? new Date(
+              Date.UTC(
+                new Date(form.date).getUTCFullYear(),
+                new Date(form.date).getUTCMonth(),
+                new Date(form.date).getUTCDate()
+              )
+            ).toISOString()
+          : new Date(
+              Date.UTC(
+                new Date().getUTCFullYear(),
+                new Date().getUTCMonth(),
+                new Date().getUTCDate()
+              )
+            ).toISOString(),
+      description: form.description.trim(),
+      type: form.type,
+      amount: parseFloat(form.amount || "0"),
+      currency: form.currency.toUpperCase(),
+      };
       const parsed = manualEventSchema.parse(payload);
-      const res = await apiClient.api["store-manual"].$post({ json: parsed });
+      const res = await apiClient.api.event[":eventId"].$put({
+        param: { eventId },
+        json: parsed,
+      });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.errors ? JSON.stringify(body.errors) : "Chyba při ukládání");
@@ -82,9 +124,7 @@ export function AddManualModal({ isOpen, onClose }: Props) {
       return res.json();
     },
     onSuccess: () => {
-      setError(null);
-      setForm({ date: todayLocalDate(), description: "", type: "expense", amount: "", currency: "CZK" });
-      // Invalidate all queries (no await)
+      // Invalidate all queries (no await) so visible data refreshes
       queryClient.invalidateQueries();
       onClose();
     },
@@ -95,7 +135,7 @@ export function AddManualModal({ isOpen, onClose }: Props) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Přidat záznam manuálně"
+      title="Upravit záznam"
       size="md"
       footer={
         <div className="flex justify-end gap-2">
@@ -107,44 +147,17 @@ export function AddManualModal({ isOpen, onClose }: Props) {
             Zavřít
           </button>
           <button
-            type="submit"
-            form="add-manual-form"
-            className="px-3 py-2 text-sm text-white bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+            type="button"
+            onClick={() => mutate()}
+            className="px-3 py-2 text-sm text-white bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50"
+            disabled={isPending}
           >
             Uložit
           </button>
         </div>
       }
     >
-      <form
-        id="add-manual-form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const payload = {
-            effective_at: form.date
-              ? new Date(
-                  Date.UTC(
-                    new Date(form.date).getUTCFullYear(),
-                    new Date(form.date).getUTCMonth(),
-                    new Date(form.date).getUTCDate()
-                  )
-                ).toISOString()
-              : new Date(
-                  Date.UTC(
-                    new Date().getUTCFullYear(),
-                    new Date().getUTCMonth(),
-                    new Date().getUTCDate()
-                  )
-                ).toISOString(),
-            description: form.description.trim(),
-            type: form.type,
-            amount: parseFloat(form.amount || "0"),
-            currency: form.currency.toUpperCase(),
-          };
-          mutate(payload);
-        }}
-        className="grid grid-cols-1 gap-3"
-      >
+      <form className="grid grid-cols-1 gap-3" onSubmit={(e) => e.preventDefault()}>
         <div>
           <label className="block text-sm text-gray-300 mb-1">Datum</label>
           <input
@@ -164,7 +177,6 @@ export function AddManualModal({ isOpen, onClose }: Props) {
             type="text"
             value={form.description}
             onChange={(e) => update("description", e.target.value)}
-            placeholder="Např. kafe, oběd, výplata..."
             className="w-full p-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:ring-1 focus:ring-white/30 focus:border-transparent"
           />
           {fieldErrors.description && (
@@ -215,7 +227,6 @@ export function AddManualModal({ isOpen, onClose }: Props) {
             )}
           </div>
         </div>
-
 
         {error && <p className="text-sm text-red-400">{error}</p>}
       </form>

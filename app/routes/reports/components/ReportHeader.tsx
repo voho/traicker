@@ -3,8 +3,8 @@ import { UserButton } from "@clerk/react-router";
 import { useState } from "react";
 import { AddAiModal } from "./modals/AddAiModal";
 import { AddManualModal } from "./modals/AddManualModal";
-import { RiRobotLine } from "react-icons/ri";
-import { FiPlus } from "react-icons/fi";
+import { PiMagicWand } from "react-icons/pi";
+import { FiUser } from "react-icons/fi";
 
 export const ReportHeader = () => {
   const [isAiOpen, setAiOpen] = useState(false);
@@ -25,7 +25,7 @@ export const ReportHeader = () => {
           className="px-3 py-2 text-sm text-gray-300 hover:text-white border border-gray-700 hover:border-gray-600 rounded-lg bg-transparent transition-colors flex items-center gap-2"
           aria-label="Přidej s AI"
         >
-          <RiRobotLine className="w-4 h-4" aria-hidden />
+          <PiMagicWand className="w-4 h-4" aria-hidden />
           <span>Přidej s AI</span>
         </button>
         <button
@@ -34,7 +34,7 @@ export const ReportHeader = () => {
           className="px-3 py-2 text-sm text-gray-300 hover:text-white border border-gray-700 hover:border-gray-600 rounded-lg bg-transparent transition-colors flex items-center gap-2"
           aria-label="Přidej manuálně"
         >
-          <FiPlus className="w-4 h-4" aria-hidden />
+          <FiUser className="w-4 h-4" aria-hidden />
           <span>Přidej manuálně</span>
         </button>
         <UserButton />

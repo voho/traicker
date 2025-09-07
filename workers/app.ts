@@ -5,6 +5,8 @@ import {timeout} from 'hono/timeout'
 import {secureHeaders} from 'hono/secure-headers'
 import {storeEvent} from "~/backend/storeEvent";
 import {storeManualEvent} from "~/backend/storeManualEvent";
+import { deleteEvent } from "~/backend/deleteEvent";
+import { editEvent } from "~/backend/editEvent";
 import { ZodError } from 'zod'
 import {getEvents} from "~/backend/getEvents";
 import {getMonthlySummary} from "~/backend/getMonthlySummary";
@@ -39,6 +41,36 @@ const app = new Hono<{ Bindings: Env }>()
         } catch (e) {
             if (e instanceof ZodError) {
                 return context.json({success: false, errors: e.flatten()}, 400)
+            }
+            throw e
+        }
+    })
+    .delete('/api/event/:eventId', async (context) => {
+        try {
+            const { eventId } = context.req.param()
+            const result = await deleteEvent({ context, eventId })
+            return context.json(result)
+        } catch (e) {
+            // @ts-ignore
+            if ((e as any).status === 404) {
+                return context.json({ success: false, error: 'Not Found' }, 404)
+            }
+            throw e
+        }
+    })
+    .put('/api/event/:eventId', async (context) => {
+        try {
+            const { eventId } = context.req.param()
+            const body = await context.req.json()
+            const result = await editEvent({ context, eventId, input: body })
+            return context.json(result)
+        } catch (e) {
+            if (e instanceof ZodError) {
+                return context.json({ success: false, errors: e.flatten() }, 400)
+            }
+            // @ts-ignore
+            if ((e as any).status === 404) {
+                return context.json({ success: false, error: 'Not Found' }, 404)
             }
             throw e
         }

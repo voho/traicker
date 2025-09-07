@@ -29,10 +29,10 @@ export function AddAiModal({ isOpen, onClose }: Props) {
     onSuccess: () => {
       setPrompt("");
       setError(null);
-      // Invalidate queries so UI refreshes
-      queryClient.invalidateQueries({ queryKey: ["monthlySummary"] });
-      queryClient.invalidateQueries({ queryKey: ["monthlySummaryChart"] });
-      queryClient.invalidateQueries({ queryKey: ["apiClient.api.events"] });
+      // Invalidate all queries without awaiting
+      queryClient.invalidateQueries();
+      // AI processing is async; invalidate again shortly after
+      setTimeout(() => queryClient.invalidateQueries(), 1200);
       onClose();
     },
     onError: (e: unknown) => {
