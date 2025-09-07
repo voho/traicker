@@ -7,7 +7,7 @@ import {QueryClientProvider} from "@tanstack/react-query";
 import {queryClient} from "~/globals";
 
 export const getCloudflareEnv = (args: Route.LoaderArgs) => {
-    // @ts-ignore
+    // @ts-expect-error this is CloudFlare specific
     return (args.context.cloudflare.env as Env);
 }
 

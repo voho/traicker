@@ -12,7 +12,13 @@ export type CustomContext = Context<{ Bindings: Env }>
 
 export const queryClient = new QueryClient()
 
-export const apiClient = hc<AppType>("/")
+// this is a trick to calculate the type when compiling
+export type Client = ReturnType<typeof hc<AppType>>
+
+export const hcWithType = (...args: Parameters<typeof hc>): Client =>
+  hc<AppType>(...args)
+
+export const apiClient = hcWithType("/")
 
 export const getAiClient = async (context: CustomContext) => new OpenAI({apiKey: context.env.LOCAL_OPENAI_SECRET_KEY ?? await context.env.OPENAI_SECRET_KEY.get()});
 

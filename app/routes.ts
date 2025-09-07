@@ -6,5 +6,6 @@ export default [
     index("routes/reports/index.tsx"),
     route("monthly", "routes/reports/monthly/index.tsx"),
     route("history", "routes/reports/history/index.tsx"),
+    route("categories", "routes/reports/categories/index.tsx"),
   ]),
 ] satisfies RouteConfig;

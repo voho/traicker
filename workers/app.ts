@@ -11,6 +11,10 @@ import { ZodError } from 'zod'
 import {getEvents} from "~/backend/getEvents";
 import {getMonthlySummary} from "~/backend/getMonthlySummary";
 import { getMonthlyTipFromAi } from "~/backend/ai/getMonthlyTipFromAi";
+import { getCategories } from "~/backend/getCategories";
+import { addCategory } from "~/backend/addCategory";
+import { editCategory } from "~/backend/editCategory";
+import { deleteCategory } from "~/backend/deleteCategory";
 
 const app = new Hono<{ Bindings: Env }>()
     .use(secureHeaders())
@@ -79,6 +83,52 @@ const app = new Hono<{ Bindings: Env }>()
     .get('/api/events',async (context) => {
         const events = await getEvents({context, paging: {pageSize: 100, page: 0}})
         return context.json(events);
+    })
+    .get('/api/categories', async (context) => {
+        const categories = await getCategories({ context })
+        return context.json(categories)
+    })
+    .post('/api/category', async (context) => {
+        try {
+            const body = await context.req.json()
+            const result = await addCategory({ context, input: body })
+            return context.json(result)
+        } catch (e) {
+            if (e instanceof ZodError) {
+                return context.json({ success: false, errors: e.flatten() }, 400)
+            }
+            throw e
+        }
+    })
+    .put('/api/category/:categoryId', async (context) => {
+        try {
+            const { categoryId } = context.req.param()
+            const body = await context.req.json()
+            const result = await editCategory({ context, categoryId, input: body })
+            return context.json(result)
+        } catch (e) {
+            if (e instanceof ZodError) {
+                return context.json({ success: false, errors: e.flatten() }, 400)
+            }
+            // @ts-ignore
+            if ((e as any).status === 404) {
+                return context.json({ success: false, error: 'Not Found' }, 404)
+            }
+            throw e
+        }
+    })
+    .delete('/api/category/:categoryId', async (context) => {
+        try {
+            const { categoryId } = context.req.param()
+            const result = await deleteCategory({ context, categoryId })
+            return context.json(result)
+        } catch (e) {
+            // @ts-ignore
+            if ((e as any).status === 404) {
+                return context.json({ success: false, error: 'Not Found' }, 404)
+            }
+            throw e
+        }
     })
     .get('/api/report/summary/:year/:month', async (context) => {
         const {month, year} = context.req.param()
