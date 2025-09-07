@@ -138,20 +138,27 @@ export const resetCategories = async ({ context }: Params) => {
     .execute()
 
   // 3) Recreate default categories with hierarchy using BFS
-  type QueueItem = { node: HierCat; parentId: string | null }
+  type QueueItem = { node: HierCat; parentId: string | null; parentTitle?: string }
   const queue: QueueItem[] = []
-  for (const root of DEFAULT_CATEGORY_TREE) queue.push({ node: root, parentId: null })
+  for (const root of DEFAULT_CATEGORY_TREE) queue.push({ node: root, parentId: null, parentTitle: undefined })
 
   let created = 0
+  const usedTitles = new Set<string>()
   while (queue.length > 0) {
-    const { node, parentId } = queue.shift()!
+    const { node, parentId, parentTitle } = queue.shift()!
+    // ensure unique title across the tree; if duplicate, prefix with parent
+    let titleToUse = node.title
+    if (usedTitles.has(titleToUse) && parentTitle) {
+      titleToUse = `${parentTitle} – ${node.title}`
+    }
+    usedTitles.add(titleToUse)
     const id = uuidv4()
     await db
       .insertInto('category')
       .values({
         category_id: id,
         user_id: userId,
-        title: node.title,
+        title: titleToUse,
         emoji: node.emoji ?? null,
         color: node.color ?? null,
         description: node.description ?? null,
@@ -164,9 +171,9 @@ export const resetCategories = async ({ context }: Params) => {
     created++
 
     for (const child of node.children ?? []) {
-      queue.push({ node: child, parentId: id })
+      queue.push({ node: child, parentId: id, parentTitle: titleToUse })
     }
   }
 
-  return { success: true, created }
+  // no return payload needed
 }

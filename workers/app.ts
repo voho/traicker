@@ -7,7 +7,6 @@ import {storeEvent} from "~/backend/event/storeEvent";
 import {storeManualEvent} from "~/backend/event/storeManualEvent";
 import { deleteEvent } from "~/backend/event/deleteEvent";
 import { editEvent } from "~/backend/event/editEvent";
-import { ZodError } from 'zod'
 import {getEvents} from "~/backend/event/getEvents";
 import {getMonthlySummary} from "~/backend/report/getMonthlySummary";
 import { getMonthlySummaryTrendPerCategory } from "~/backend/report/getMonthlySummaryTrendPerCategory";
@@ -22,7 +21,7 @@ import { deleteCategory } from "~/backend/category/deleteCategory";
 
 const app = new Hono<{ Bindings: Env }>()
     .use(secureHeaders())
-    .use('/api/*', timeout(30000))
+    .use('/api/*', timeout(1000*60*10))
     .use('/api/*', async (c, next) => {
         const middleware = clerkMiddleware({
             secretKey: c.env.LOCAL_CLERK_SECRET_KEY ?? await c.env.CLERK_SECRET_KEY.get(),
@@ -31,58 +30,25 @@ const app = new Hono<{ Bindings: Env }>()
         return middleware(c, next)
     })
     .post('/api/store',async (context) => {
-        try {
-            const request = await context.req.json()
-            await storeEvent({context, prompt: request.prompt})
-            return context.json({success: true});
-        } catch (e) {
-            if (e instanceof ZodError) {
-                return context.json({success: false, errors: e.flatten()}, 400)
-            }
-            throw e
-        }
+        const request = await context.req.json()
+        await storeEvent({context, prompt: request.prompt})
+        return context.json({success: true});
     })
     .post('/api/store-manual', async (context) => {
-        try {
-            const request = await context.req.json()
-            await storeManualEvent({ context, input: request })
-            return context.json({success: true});
-        } catch (e) {
-            if (e instanceof ZodError) {
-                return context.json({success: false, errors: e.flatten()}, 400)
-            }
-            throw e
-        }
+        const request = await context.req.json()
+        await storeManualEvent({ context, input: request })
+        return context.json({success: true});
     })
     .delete('/api/event/:eventId', async (context) => {
-        try {
-            const { eventId } = context.req.param()
-            const result = await deleteEvent({ context, eventId })
-            return context.json(result)
-        } catch (e) {
-            // @ts-ignore
-            if ((e as any).status === 404) {
-                return context.json({ success: false, error: 'Not Found' }, 404)
-            }
-            throw e
-        }
+        const { eventId } = context.req.param()
+        await deleteEvent({ context, eventId })
+        return context.body(null, 204)
     })
     .put('/api/event/:eventId', async (context) => {
-        try {
-            const { eventId } = context.req.param()
-            const body = await context.req.json()
-            const result = await editEvent({ context, eventId, input: body })
-            return context.json(result)
-        } catch (e) {
-            if (e instanceof ZodError) {
-                return context.json({ success: false, errors: e.flatten() }, 400)
-            }
-            // @ts-ignore
-            if ((e as any).status === 404) {
-                return context.json({ success: false, error: 'Not Found' }, 404)
-            }
-            throw e
-        }
+        const { eventId } = context.req.param()
+        const body = await context.req.json()
+        await editEvent({ context, eventId, input: body })
+        return context.body(null, 204)
     })
     .get('/api/events',async (context) => {
         const events = await getEvents({context, paging: {pageSize: 100, page: 0}})
@@ -93,63 +59,29 @@ const app = new Hono<{ Bindings: Env }>()
         return context.json(categories)
     })
     .post('/api/categorize-events', async (context) => {
-        try {
-            const body = await context.req.json().catch(() => ({})) as { force?: boolean }
-            const result = await categorizeEvents({ context, input: { force: Boolean(body?.force) } })
-            return context.json(result)
-        } catch (e) {
-            return context.json({ success: false }, 400)
-        }
+        const body = await context.req.json().catch(() => ({})) as { force?: boolean }
+        await categorizeEvents({ context, input: { force: Boolean(body?.force) } })
+        return context.body(null, 202)
     })
     .post('/api/reset-categories', async (context) => {
-        try {
-            const result = await resetCategories({ context })
-            return context.json(result)
-        } catch (e) {
-            return context.json({ success: false }, 400)
-        }
+        await resetCategories({ context })
+        return context.body(null, 204)
     })
     .post('/api/category', async (context) => {
-        try {
-            const body = await context.req.json()
-            const result = await addCategory({ context, input: body })
-            return context.json(result)
-        } catch (e) {
-            if (e instanceof ZodError) {
-                return context.json({ success: false, errors: e.flatten() }, 400)
-            }
-            throw e
-        }
+        const body = await context.req.json()
+        await addCategory({ context, input: body })
+        return context.body(null, 201)
     })
     .put('/api/category/:categoryId', async (context) => {
-        try {
-            const { categoryId } = context.req.param()
-            const body = await context.req.json()
-            const result = await editCategory({ context, categoryId, input: body })
-            return context.json(result)
-        } catch (e) {
-            if (e instanceof ZodError) {
-                return context.json({ success: false, errors: e.flatten() }, 400)
-            }
-            // @ts-ignore
-            if ((e as any).status === 404) {
-                return context.json({ success: false, error: 'Not Found' }, 404)
-            }
-            throw e
-        }
+        const { categoryId } = context.req.param()
+        const body = await context.req.json()
+        await editCategory({ context, categoryId, input: body })
+        return context.body(null, 204)
     })
     .delete('/api/category/:categoryId', async (context) => {
-        try {
-            const { categoryId } = context.req.param()
-            const result = await deleteCategory({ context, categoryId })
-            return context.json(result)
-        } catch (e) {
-            // @ts-ignore
-            if ((e as any).status === 404) {
-                return context.json({ success: false, error: 'Not Found' }, 404)
-            }
-            throw e
-        }
+        const { categoryId } = context.req.param()
+        await deleteCategory({ context, categoryId })
+        return context.body(null, 204)
     })
     .get('/api/report/summary/:year/:month', async (context) => {
         const {month, year} = context.req.param()

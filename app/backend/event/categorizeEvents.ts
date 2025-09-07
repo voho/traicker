@@ -14,7 +14,6 @@ type Params = {
 export const categorizeEvents = async ({ context, input }: Params) => {
   // Kick off background processing and return immediately
   context.executionCtx.waitUntil(runCategorization({ context, input }));
-  return { success: true as const };
 };
 
 // Actual categorization workflow executed in background
@@ -125,6 +124,7 @@ const buildCategorizationPrompt = (categoriesJson: string, events: EventRow[]) =
     "",
     "Instrukce:",
     "- U každé transakce vyber právě jednu kategorii, která se nejlépe hodí.",
+    "- Kategorie musí být co nejkonkrétnější.",
     "- Vrať pouze čisté JSON pole objektů, bez komentářů.",
     "- Každý objekt musí mít klíče: eventId, categoryId, explain (krátké zdůvodnění), confidence (0..1).",
     "",

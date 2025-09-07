@@ -33,7 +33,4 @@ export const addCategory = async ({ context, input }: Params) => {
       description: parsed.description ?? null,
     })
     .execute()
-
-  return { success: true, categoryId }
 }
-

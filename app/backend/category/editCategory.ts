@@ -40,7 +40,4 @@ export const editCategory = async ({ context, categoryId, input }: Params) => {
     .where("category_id", "=", categoryId)
     .where("user_id", "=", userId)
     .execute();
-
-  return { success: true };
 };
-
